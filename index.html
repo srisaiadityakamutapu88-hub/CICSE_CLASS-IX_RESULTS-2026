@@ -1,0 +1,212 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>CICSE Results 2026</title>
+
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0}
+.container{max-width:420px;margin:40px auto;background:white;padding:20px;border-radius:10px}
+input,button{width:100%;padding:10px;margin:8px 0}
+button{background:#0b7a2a;color:white;border:none;font-size:16px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+td,th{border:1px solid #000;padding:6px;text-align:center}
+.fail{background:#ffe6e6;color:red;font-weight:bold}
+#previewBox{text-align:center;background:white;padding:15px;margin:15px;border-radius:10px}
+h2{text-align:center}
+</style>
+</head>
+
+<body>
+
+<div id="previewBox">
+<h3>Result Declaration Notice</h3>
+<p id="releaseMsg"></p>
+<h3 id="countdown"></h3>
+</div>
+
+<div class="container">
+<h2>CICSE CLASS IX RESULTS 2026</h2>
+
+<input id="ht" placeholder="Hall Ticket">
+<input id="dob" placeholder="DOB (YYYY-MM-DD)">
+<input id="scode" placeholder="School Code">
+
+<canvas id="capCanvas" width="200" height="60"></canvas>
+<span onclick="genCap()" style="cursor:pointer">🔄</span>
+
+<input id="cap" placeholder="Enter CAPTCHA">
+<button onclick="getResult()">Get Result</button>
+</div>
+
+<div id="resultPage" style="display:none;padding:20px"></div>
+
+<script>
+
+/* ================= CONFIG ================= */
+let resultRelease = new Date("2026-05-24T11:00:00");
+let expiryDate = new Date("2026-05-30T23:59:59");
+
+/* ================= HALL TICKETS (150) ================= */
+let hallTickets = [
+"260034633744","260141830620","260152986151","260160760245","260254060166",
+"260371837702","260376242326","260406585782","260466791833","260502540839",
+"260503064215","260549809643","260674525654","260771318613","260943721208",
+"261018973320","261126522723","261152348733","261152447271","261184502210",
+"261251745076","261262179838","261480708740","261558094672","261577384560",
+"261633204335","261710918634","261772514802","261799945463","261821616267",
+"261836334222","261862752664","261885694422","261904453957","261913445811",
+"261959762410","262032305394","262297128739","262337004734","262382630635",
+"262711127886","262762335687","262897211578","262988782785","263116995064",
+"263133294894","263206063067","263236163536","263277369926","263327033821",
+"263372348026","263575190544","263608051427","263733395087","263794220772",
+"263798291677","263807575953","263826451651","263835956576","263864036238",
+"264018054585","264067733224","264076808421","264137102309","264225372854",
+"264418155872","264442716802","264477274036","264484988359","264617322508",
+"264626628611","264759267429","264769884538","264793633207","264806292065",
+"264924845643","264976709106","265008278012","265070611664","265175581324",
+"265178750431","265236654257","265241586446","265340691876","265504399733",
+"265523463897","265532977404","265557735489","265657852017","265770640509",
+"265781810246","265783105738","265851123750","266009697941","266011669780",
+"266245179743","266259740307","266422510098","266446132677","266576661799",
+"266658260565","266674085633","266704408681","266738321413","266789861974",
+"266872816390","266938159406","266997851781","267048779372","267114617098",
+"267215561502","267244693233","267336730000","267348196365","267515842288",
+"267586431438","267591383746","267605110146","267615152363","267632793683",
+"267711783198","267735934860","267791720290","267952537666","267987636861",
+"268201693648","268211885657","268307842859","268358290343","268368266180",
+"268534098582","268623150397","268651230396","268659281331","268690971575",
+"268714312252","268758532334","268758976089","269158449843","269204461807",
+"269269736509","269281965072","269297648889","269421838671","269482887296",
+"269593918835","269654325875","269668272946","269758906371","269972214291"
+];
+
+/* ================= STUDENT ENGINE (PERMANENT) ================= */
+let baseNames = ["Aarav","Vivaan","Aditya","Arjun","Sai","Karthik","Rohan","Rahul","Vikram","Nikhil","Ananya","Sneha","Pooja","Kavya","Riya","Meera","Lakshmi","Divya","Aditi","Isha"];
+let surnames = ["Reddy","Sharma","Kumar","Rao","Iyer","Patel","Singh","Verma","Nair","Gupta"];
+
+function seed(str,min,max){
+ let s=0; for(let c of str)s+=c.charCodeAt(0);
+ s=(s*9301+49297)%233280;
+ return Math.floor(min+(s/233280)*(max-min));
+}
+
+function dob(ht){
+ let m=seed(ht,1,12);
+ let d=seed(ht+"x",1,28);
+ return `2011-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+let students={};
+
+hallTickets.forEach((ht,i)=>{
+ students[ht]={
+  name: baseNames[i%baseNames.length]+" "+surnames[i%surnames.length],
+  gender: i%2?"Female":"Male",
+  dob: dob(ht),
+
+  engL: seed(ht+"1",40,95),
+  engLit: seed(ht+"2",40,95),
+  lang: seed(ht+"3",40,95),
+  math: seed(ht+"4",40,98),
+
+  phy: seed(ht+"5",25,90),
+  chem: seed(ht+"6",35,95),
+  bio: seed(ht+"7",35,95),
+
+  geo: seed(ht+"8",35,95),
+  his: seed(ht+"9",35,95),
+
+  comp: seed(ht+"10",35,100),
+  compSci: seed(ht+"11",35,100)
+ };
+});
+
+/* ================= CAPTCHA ================= */
+let captcha="";
+function genCap(){
+ let ctx=capCanvas.getContext("2d");
+ ctx.clearRect(0,0,200,60);
+ let chars="ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
+ captcha="";
+ for(let i=0;i<6;i++){
+  let c=chars[Math.floor(Math.random()*chars.length)];
+  captcha+=c;
+  ctx.fillText(c,20+i*25,30);
+ }
+}
+genCap();
+
+/* ================= LOGIN ================= */
+function getResult(){
+
+ if(new Date()<resultRelease){alert("Not released yet");return;}
+ if(new Date()>expiryDate){alert("Expired");return;}
+
+ let ht=document.getElementById("ht").value;
+ let d=document.getElementById("dob").value;
+ let s=document.getElementById("scode").value;
+ let c=document.getElementById("cap").value;
+
+ if(c.toUpperCase()!=captcha){alert("Captcha wrong");genCap();return;}
+ if(s!="TSSJPSMLK050"){alert("Wrong school code");return;}
+
+ let st=students[ht];
+ if(!st||st.dob!=d){alert("Invalid details");return;}
+
+ showResult(ht,st);
+}
+
+/* ================= RESULT ================= */
+function showResult(ht,s){
+
+ let eng=Math.round((s.engL+s.engLit)/2);
+ let sci=Math.round((s.phy+s.chem+s.bio)/3);
+ let soc=Math.round((s.geo+s.his)/2);
+
+ let subs=[
+ ["English",eng],["Language",s.lang],["Maths",s.math],
+ ["Science",sci],["Social Studies",soc],
+ ["Computer",s.comp],["CS",s.compSci]
+ ];
+
+ let fail=subs.filter(x=>x[1]<35);
+
+ let best=subs.slice(1).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ let total=eng+best.reduce((a,b)=>a+b[1],0);
+ let per=(total/600)*100;
+
+ let html=`
+<h2>Statement of Marks</h2>
+<p>${s.name}<br>${ht}<br>${s.dob}<br>${s.gender}</p>
+
+<table>
+<tr><th>Subject</th><th>Marks</th><th>%</th></tr>
+${subs.map(x=>`
+<tr class="${x[1]<35?'fail':''}">
+<td>${x[0]}</td><td>${x[1]}</td><td>${x[1]}%</td>
+</tr>`).join("")}
+</table>
+
+<br>
+Total: ${total}/600<br>
+Percentage: ${per.toFixed(2)}%<br>
+Result: ${fail.length?"FAIL":"PASS"}
+`;
+
+ document.getElementById("resultPage").innerHTML=html;
+ document.getElementById("resultPage").style.display="block";
+}
+
+/* INIT */
+setInterval(()=>{
+ let d=resultRelease-new Date();
+ if(d<=0){countdown.innerHTML="Results Released";return;}
+ let x=Math.floor(d/86400000);
+ countdown.innerHTML=x+" days remaining";
+},1000);
+
+</script>
+</body>
+</html>
+```
